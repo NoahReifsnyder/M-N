@@ -1,0 +1,8 @@
+Noah Reifsnyder
+Hw12
+
+1.
+	a. Bat and ball must appear in all of the transactions in the database
+	b.For every other rule that has bat and ball on the left, cap must be on the right
+
+2.Because if they were to run on the same database, they would get in each others way a lot. Mining requires a lot of read locks and that would make it hard for the online transactions to process.
