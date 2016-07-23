@@ -3,6 +3,7 @@
     package="weatherstation.netatmo.com.netatmo_api_android" >
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
 
     <application
@@ -28,6 +29,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="weatherstation.netatmo.com.netatmo_api_android.sample.MainActivity" />
         </activity>
+        <service
+            android:name=".sample.BackgroundActivity"/>
     </application>
 
 </manifest>

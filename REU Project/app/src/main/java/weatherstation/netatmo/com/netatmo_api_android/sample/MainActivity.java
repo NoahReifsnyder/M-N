@@ -2,9 +2,11 @@ package weatherstation.netatmo.com.netatmo_api_android.sample;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Path;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBar.OnNavigationListener;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -22,11 +24,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,8 +43,11 @@ import weatherstation.netatmo.com.netatmo_api_android.api.model.Module;
 import weatherstation.netatmo.com.netatmo_api_android.api.model.Params;
 import weatherstation.netatmo.com.netatmo_api_android.api.model.Station;
 import android.widget.Button;
+import java.io.File;
+import android.os.Environment;
+import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity implements ActionBar.OnNavigationListener {
+public class MainActivity extends AppCompatActivity implements OnNavigationListener {
 
     public static final String TAG = "MainActivity";
     CustomAdapter mAdapter;
@@ -65,17 +73,18 @@ public class MainActivity extends AppCompatActivity implements ActionBar.OnNavig
             Log.d(Thread.currentThread().toString(), "Here");
             while(true) {
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(600000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                System.out.println("Second");
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         RunTime();
                     }
                 });
+                System.out.println(readFromSDCard());
+
             }
         }
     });
@@ -122,15 +131,15 @@ public class MainActivity extends AppCompatActivity implements ActionBar.OnNavig
         read = (Button) findViewById(R.id.read);
         read.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                System.out.println(readFromFile());
+                System.out.println(readFromSDCard());
+
 
             }
         });
         clear = (Button) findViewById(R.id.clear);
         clear.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                System.out.println("clear");
-                clearFile();
+                BackgroundActivity ba=new BackgroundActivity();
             }
         });
 
@@ -181,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.OnNavig
                                 module.setMeasures(measuresHashMap.get(module.getId()));
                                 Measures m = module.getMeasures();
                                 logger = m.getBeginTime() + "," + m.getTemperature() + "," + m.getHumidity() + "," + m.getPressure() + ",";
-                                writeToFile(logger);
+                                writeToSDFile(logger);
                                 mListItems.add(module);
                             }
                             mAdapter.notifyDataSetChanged();
@@ -210,6 +219,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.OnNavig
 
 
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -406,7 +416,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.OnNavig
     private void writeToFile(String data) {
         String write=readFromFile().concat(data);
         try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getApplicationContext().openFileOutput("note.txt", Context.MODE_PRIVATE));
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getApplicationContext().openFileOutput("REUCSV.txt", Context.MODE_PRIVATE));
             outputStreamWriter.write(write);
             outputStreamWriter.close();
         }
@@ -416,7 +426,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.OnNavig
     }
     private void clearFile(){
         try {
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getApplicationContext().openFileOutput("note.txt", Context.MODE_PRIVATE));
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getApplicationContext().openFileOutput("REUCSV.txt", Context.MODE_PRIVATE));
             outputStreamWriter.write("");
             outputStreamWriter.close();
         }
@@ -429,8 +439,7 @@ public class MainActivity extends AppCompatActivity implements ActionBar.OnNavig
         String ret = "";
 
         try {
-            InputStream inputStream = openFileInput("note.txt");
-
+            InputStream inputStream = openFileInput("REUCSV.txt");
             if ( inputStream != null ) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -455,4 +464,74 @@ public class MainActivity extends AppCompatActivity implements ActionBar.OnNavig
     }
 
 
+
+
+
+
+    /**
+     * Method to check whether external media available and writable. This is adapted from
+     * http://developer.android.com/guide/topics/data/data-storage.html#filesExternal
+     */
+
+
+
+    /**
+     * Method to write ascii text characters to file on SD card. Note that you must add a
+     * WRITE_EXTERNAL_STORAGE permission to the manifest file or this method will throw
+     * a FileNotFound Exception because you won't have write permission.
+     */
+
+    private void writeToSDFile(String logger) {
+
+        // Find the root of the external storage.
+        // See http://developer.android.com/guide/topics/data/data-  storage.html#filesExternal
+
+        File root = android.os.Environment.getExternalStorageDirectory();
+        // See http://stackoverflow.com/questions/3551821/android-write-to-sd-card-folder
+
+        File dir = new File(root.getAbsolutePath() + "/Download");
+        dir.mkdirs();
+        File file = new File(dir, "REUCSV.txt");
+        String write=readFromSDCard().concat(logger);
+        try {
+            FileOutputStream f = new FileOutputStream(file);
+            PrintWriter pw = new PrintWriter(f);
+            pw.print(write);
+            pw.flush();
+            pw.close();
+            f.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Log.i(TAG, "******* File not found.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private String readFromSDCard(){
+        File root = android.os.Environment.getExternalStorageDirectory();
+
+        final File file = new File(root.getAbsolutePath() + "/Download/REUCSV.txt");
+        System.out.println(file.getAbsolutePath());
+        String ret="";
+        try {
+            InputStream inputStream = new FileInputStream(file);
+            if ( inputStream != null ) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                String receiveString = "";
+                StringBuilder stringBuilder = new StringBuilder();
+
+                while ( (receiveString = bufferedReader.readLine()) != null ) {
+                    stringBuilder.append(receiveString);
+                }
+
+                inputStream.close();
+                ret = stringBuilder.toString();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
 }
+

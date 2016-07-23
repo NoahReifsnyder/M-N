@@ -54,4 +54,15 @@
         android:layout_alignRight="@+id/list"
         android:layout_alignEnd="@+id/list" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/TextView01"
+        android:layout_below="@+id/read"
+        android:layout_alignLeft="@+id/read"
+        android:layout_alignStart="@+id/read"
+        android:layout_marginTop="40dp"
+        android:layout_toLeftOf="@+id/update"
+        android:layout_toStartOf="@+id/update" />
+
 </RelativeLayout>
